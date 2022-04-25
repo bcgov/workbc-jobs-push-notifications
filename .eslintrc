@@ -1,0 +1,29 @@
+{
+    "extends": [
+        "airbnb-base",
+        "airbnb-typescript/base"
+      ],
+    "parserOptions": {
+        "project": "./tsconfig.json"
+    },
+    "rules": {
+        // regular rules //
+        "max-len": ["error", 150],
+        "object-shorthand": "off",
+        "no-tabs": "off",
+        "no-console": "off",
+        "semi": "off",
+
+        // typescript rules //
+        "@typescript-eslint/indent": ["error", 4], 
+        "@typescript-eslint/quotes": [
+            "error",
+            "double",
+            {
+              "allowTemplateLiterals": true // allows backticks
+            }
+        ],
+        "@typescript-eslint/comma-dangle": "off",
+        "@typescript-eslint/semi": ["error", "never"]
+    }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "workbc-jobs-push-notifications",
+  "version": "1.0.0",
+  "description": "API microservice for handling the daily cron job which sends out push notifications to users with new job postings related to their job searches",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcgov/workbc-jobs-push-notifications.git"
+  },
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/bcgov/workbc-jobs-push-notifications/issues"
+  },
+  "homepage": "https://github.com/bcgov/workbc-jobs-push-notifications#readme",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "csrf": "^3.1.0",
+    "express": "^4.18.0",
+    "helmet": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.27",
+    "@typescript-eslint/eslint-plugin": "^5.21.0",
+    "@typescript-eslint/parser": "^5.21.0",
+    "eslint": "^8.14.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "typescript": "^4.6.3"
+  }
+}
