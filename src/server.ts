@@ -30,7 +30,7 @@ app.listen(port, () => {
 cron.schedule("0 8 * * *", async () => {
     console.log("===== START CRON JOB =====")
     const minimumPostedDate = new Date()
-    minimumPostedDate.setDate(minimumPostedDate.getDate() - 1)
+    minimumPostedDate.setDate(minimumPostedDate.getDate() - 1) // TODO: fix once AEST api is updated
     const usersNotified: string[] = []
 
     try {
@@ -40,6 +40,7 @@ cron.schedule("0 8 * * *", async () => {
             SELECT js.user_id, js.keyword, js.location, js.language, t.token, t.platform
             FROM job_searches js
             INNER JOIN tokens t ON js.user_id = t.user_id
+            WHERE js.user_removed = FALSE
             `,
             []
         )
@@ -50,7 +51,7 @@ cron.schedule("0 8 * * *", async () => {
                     console.log(`keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}`)
                     try {
                         const jobsResp = await jobsApi.get(
-                            "Jobs",
+                            "Jobs/SearchJobs",
                             {
                                 data: {
                                     jobTitle: row.keyword,
@@ -68,8 +69,12 @@ cron.schedule("0 8 * * *", async () => {
                                 await notificationsApi.post(
                                     "Messaging/Send",
                                     {
-                                        title: "New Jobs Posted",
-                                        content: "There are new job postings for one or more of your saved job searches!",
+                                        title: row.language.toUpperCase() === "EN"
+                                            ? "New Jobs Posted"
+                                            : "Nouvelles offres d'emploi",
+                                        content: row.language.toUpperCase() === "EN"
+                                            ? "There are new job postings for one or more of your saved job searches!"
+                                            : "Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!",
                                         token: row.token,
                                         platform: row.platform,
                                         dryRun: false
