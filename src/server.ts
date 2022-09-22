@@ -30,7 +30,7 @@ app.listen(port, () => {
 cron.schedule("0 8 * * *", async () => {
     console.log("===== START CRON JOB =====")
     const minimumPostedDate = new Date()
-    minimumPostedDate.setDate(minimumPostedDate.getDate() - 1) // TODO: fix once AEST api is updated
+    minimumPostedDate.setDate(minimumPostedDate.getDate() - 1)
     minimumPostedDate.setHours(8)
     minimumPostedDate.setMinutes(0)
     minimumPostedDate.setSeconds(0)

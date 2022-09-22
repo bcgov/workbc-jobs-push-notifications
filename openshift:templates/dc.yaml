@@ -1,0 +1,155 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: workbc-jobs-push-notifications
+labels:
+  template: workbc-jobs-push-notifications
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    name: ${NAME}${SUFFIX} 
+    labels:
+      app: workbc-jobs-push-notifications
+      app.kubernetes.io/component: workbc-jobs-push-notifications
+      app.openshift.io/runtime: nodejs
+  spec:
+    replicas: 2
+    selector:
+      deploymentconfig: ${NAME}${SUFFIX}
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          deploymentconfig: ${NAME}${SUFFIX}
+      spec:
+        containers:
+          - name: ${NAME}
+            image: ${NAME}:${TAG}
+            ports:
+              - containerPort: 8000
+                protocol: TCP
+            env:
+              - name: NOTIFICATIONS_API_URL
+                value: ${NOTIFICATIONS_API_URL}
+              - name:  NOTIFICATIONS_API_USER
+                valueFrom:
+                  secretKeyRef:
+                    key: username
+                    name: ${NOTIFICATIONS_API_SECRET_NAME}
+              - name:  NOTIFICATIONS_API_PASS
+                valueFrom:
+                  secretKeyRef:
+                    key: password
+                    name: ${NOTIFICATIONS_API_SECRET_NAME}
+              - name: JOBS_API_URL
+                value: ${JOBS_API_HOST}
+              - name: PGUSER
+                valueFrom:
+                  secretKeyRef:
+                    key: app-db-name
+                    name: ${PGSECRET_NAME}
+              - name: PGPASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    key: app-db-password
+                    name: ${PGSECRET_NAME}
+              - name:  PGHOST
+                value: ${PGHOST}
+              - name:  PGPORT
+                value: ${PGPORT}
+              - name: PGDATABASE
+                value: ${PGDATABASE}
+            resources:
+              limits:
+                cpu: '150m'
+              requests:
+                cpu: '100m'
+    test: false  
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${NAME}:${TAG}
+          namespace: ${IMAGE_NAMESPACE}
+      type: ImageChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    name: ${NAME}${SUFFIX}
+  spec:
+    ports:
+    - name: 8000-tcp
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+    selector:
+      deploymentconfig: ${NAME}${SUFFIX}
+parameters:
+- description: A name used for all objects
+  displayName: Name
+  name: NAME
+  required: true
+  value: workbc-jobs-push-notifications
+- description: A name suffix used for all objects
+  displayName: Suffix
+  name: SUFFIX
+  required: false
+  value: ''
+- description: Tag used for the image tags
+  displayName: tag
+  name: TAG
+  required: true
+  value: latest
+- description: The namespace of the OS project containing the imagestreams
+  displayName: Image Namespace
+  name: IMAGE_NAMESPACE
+  required: true
+  value: myproject-tools
+- description: The image name
+  displayName: Image Name
+  name: IMAGE_NAME
+  required: true
+  value: workbc-jobs-push-notifications
+- description: The URL of the WorkBC Notifications API
+  displayName: Notifications API URL
+  name: NOTIFICATIONS_API_URL
+  required: true
+  value: 'workbc-mobile-notifications-api'
+- description: The username for the WorkBC Notifications API
+  displayName: Notifications API User
+  name: NOTIFICATIONS_API_SECRET_NAME
+  required: true
+  value: ''
+- description: The host name of the WorkBC Jobs API
+  displayName: Jobs API URL
+  name: JOBS_API_HOST
+  required: true
+  value: 'workbc-jobs-api'
+- description: Name of Postgres secret that holds app-db-username and app-db-password
+  displayName: PGSECRET_NAME
+  name: PGSECRET_NAME
+  required: true
+  value: ''
+- description: Host URL for postgres DB
+  displayName: PG Host
+  name: PGHOST
+  required: true
+  value: localhost
+- description: Initial database for postgres DB
+  displayName: PG Database
+  name: PGDATABASE
+  required: true
+  value: content
+- description: Port for postgres DB
+  displayName: PG Port
+  name: PGPORT
+  required: true
+  value: '5432'
