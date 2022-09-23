@@ -31,7 +31,7 @@ app.listen(port, () => {
     console.log("PG PORT: ", process.env.PGPORT)
 })
 
-cron.schedule("30 * * * *", async () => {
+cron.schedule("*/5 * * * *", async () => {
     console.log("===== START CRON JOB =====")
     const minimumPostedDate = new Date()
     minimumPostedDate.setDate(minimumPostedDate.getDate() - 1)
