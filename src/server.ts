@@ -27,7 +27,7 @@ app.listen(port, () => {
     console.log(`server started at http://localhost:${port}`)
 })
 
-cron.schedule("0 11 * * *", async () => {
+cron.schedule("30 * * * *", async () => {
     console.log("===== START CRON JOB =====")
     const minimumPostedDate = new Date()
     minimumPostedDate.setDate(minimumPostedDate.getDate() - 1)
