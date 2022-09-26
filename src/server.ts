@@ -108,4 +108,8 @@ cron.schedule("0 8 * * *", async () => {
     } catch (e: any) {
         console.log(e.message)
     }
-})
+}, {
+    scheduled: true,
+    timezone: "America/Los_Angeles"
+    }
+)
