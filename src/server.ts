@@ -95,11 +95,11 @@ cron.schedule("0 8 * * *", async () => {
                                     }
                                 )
                             } catch (e: any) {
-                                console.log(e.message)
+                                console.log("Error sending notification. Message: ", e.message)
                             }
                         }
                     } catch (e: any) {
-                        console.log(e.message)
+                        console.log("Error searching jobs. Message: ", e.message)
                     }
                 })
             })

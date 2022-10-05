@@ -64,9 +64,11 @@ objects:
                 value: ${PGDATABASE}
             resources:
               limits:
-                cpu: '150m'
+                cpu: 50m
+                memory: 65Mi
               requests:
-                cpu: '100m'
+                cpu: 10m
+                memory: 40Mi
     test: false  
     triggers:
     - type: ConfigChange
