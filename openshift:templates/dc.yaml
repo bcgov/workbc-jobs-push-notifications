@@ -16,7 +16,7 @@ objects:
       app.kubernetes.io/component: workbc-jobs-push-notifications
       app.openshift.io/runtime: nodejs
   spec:
-    replicas: 2
+    replicas: 1
     selector:
       deploymentconfig: ${NAME}${SUFFIX}
     template:
@@ -49,7 +49,7 @@ objects:
               - name: PGUSER
                 valueFrom:
                   secretKeyRef:
-                    key: app-db-name
+                    key: app-db-username
                     name: ${PGSECRET_NAME}
               - name: PGPASSWORD
                 valueFrom:
@@ -64,11 +64,11 @@ objects:
                 value: ${PGDATABASE}
             resources:
               limits:
-                cpu: 50m
-                memory: 65Mi
+                cpu: 100m
+                memory: 150Mi
               requests:
                 cpu: 10m
-                memory: 40Mi
+                memory: 75Mi
     test: false  
     triggers:
     - type: ConfigChange
