@@ -14,6 +14,23 @@ const corsOptions = {
     optionsSuccessStatus: 200
 }
 
+const manyJobPostingsNavigation = {
+    baseScreen: "Job",
+    props: {
+        screen: "Search"
+    }
+} as const
+
+const constructOneJobPostingNavigation = (jobId: string) => ({
+    baseScreen: "Job",
+    props: {
+        screen: "JobDetails",
+        params: {
+            itemId: jobId
+        }
+    }
+})
+
 const app = express()
 
 app.use(express.json())
@@ -30,7 +47,6 @@ app.listen(port, () => {
     console.log("PG HOST: ", process.env.PGHOST)
     console.log("PG PORT: ", process.env.PGPORT)
 })
-
 cron.schedule("0 8 * * *", async () => {
     console.log("===== START CRON JOB =====")
     const minimumPostedDate = new Date()
@@ -85,7 +101,9 @@ cron.schedule("0 8 * * *", async () => {
                                             : "Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!",
                                         token: row.token,
                                         platform: row.platform,
-                                        dryRun: false
+                                        dryRun: false,
+                                        data: jobsResp.data.count > 1
+                                            ? manyJobPostingsNavigation : constructOneJobPostingNavigation(jobsResp.data.jobs[0].jobId)
                                     },
                                     {
                                         auth: {
@@ -111,5 +129,4 @@ cron.schedule("0 8 * * *", async () => {
 }, {
     scheduled: true,
     timezone: "America/Los_Angeles"
-    }
-)
+})
