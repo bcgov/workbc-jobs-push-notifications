@@ -62,6 +62,7 @@ const runOnStart = async () => {
             []
         )
         console.log("jobSearches: ", jobSearches.rows)
+        console.log("jobSearches count: ", jobSearches.rowCount)
 
         console.log("Checking for new job postings...")
         jobSearches.rows.forEach(async (row: any) => {
