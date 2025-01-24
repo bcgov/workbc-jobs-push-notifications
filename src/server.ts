@@ -48,6 +48,55 @@ app.listen(port, () => {
     console.log("PG HOST: ", process.env.PGHOST)
     console.log("PG PORT: ", process.env.PGPORT)
 })
+const runOnStart = async () => {
+    console.log("Running initial job search on server start...")
+    const minimumPostedDate = new Date()
+    minimumPostedDate.setDate(minimumPostedDate.getDate() - 1)
+    minimumPostedDate.setHours(8)
+    minimumPostedDate.setMinutes(0)
+    minimumPostedDate.setSeconds(0)
+    minimumPostedDate.setMilliseconds(0)
+
+    try {
+        console.log("Getting list of all stored job searches...")
+        const jobSearches = await db.query(
+            `
+            SELECT js.user_id, js.keyword, js.location, js.language, t.token, t.platform
+            FROM job_searches js
+            INNER JOIN tokens t ON js.user_id = t.user_id
+            WHERE js.user_removed = FALSE
+            `,
+            []
+        )
+
+        console.log("Checking for new job postings...")
+        jobSearches.rows.forEach(async (row: any) => {
+            console.log(`keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}`)
+            try {
+                const jobsResp = await jobsApi.get(
+                    "Jobs/SearchJobs",
+                    {
+                        data: {
+                            jobTitle: row.keyword,
+                            location: row.location,
+                            language: row.language,
+                            minimumPostedDate: minimumPostedDate
+                        }
+                    }
+                )
+                console.log("jobsResp: ", jobsResp.data)
+            } catch (e: any) {
+                console.log("Error searching jobs. Message: ", e.message)
+            }
+        })
+
+        console.log("Initial job search completed.")
+    } catch (e: any) {
+        console.log(e.message)
+    }
+}
+
+runOnStart()
 cron.schedule("0 8 * * *", async () => {
     console.log("===== START CRON JOB =====")
     const minimumPostedDate = new Date()
