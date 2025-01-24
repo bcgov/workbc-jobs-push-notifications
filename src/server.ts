@@ -41,13 +41,6 @@ app.use(cookieParser())
 app.use(helmet())
 
 const port = process.env.PORT || "8000"
-app.listen(port, () => {
-    console.log(`server started at http://localhost:${port}`)
-    console.log("Notifications API URL: ", process.env.NOTIFICATIONS_API_URL)
-    console.log("Jobs API URL: ", process.env.JOBS_API_URL)
-    console.log("PG HOST: ", process.env.PGHOST)
-    console.log("PG PORT: ", process.env.PGPORT)
-})
 const runOnStart = async () => {
     console.log("Running initial job search on server start...")
     const minimumPostedDate = new Date()
@@ -95,8 +88,15 @@ const runOnStart = async () => {
         console.log(e.message)
     }
 }
+app.listen(port, () => {
+    console.log(`server started at http://localhost:${port}`)
+    console.log("Notifications API URL: ", process.env.NOTIFICATIONS_API_URL)
+    console.log("Jobs API URL: ", process.env.JOBS_API_URL)
+    console.log("PG HOST: ", process.env.PGHOST)
+    console.log("PG PORT: ", process.env.PGPORT)
+    runOnStart()
+})
 
-runOnStart()
 cron.schedule("0 8 * * *", async () => {
     console.log("===== START CRON JOB =====")
     const minimumPostedDate = new Date()
