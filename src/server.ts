@@ -44,7 +44,7 @@ const port = process.env.PORT || "8000"
 const runOnStart = async () => {
     console.log("Running initial job search on server start...")
     const minimumPostedDate = new Date()
-    minimumPostedDate.setDate(minimumPostedDate.getDate() - 1)
+    minimumPostedDate.setDate(minimumPostedDate.getDate() - 100)
     minimumPostedDate.setHours(8)
     minimumPostedDate.setMinutes(0)
     minimumPostedDate.setSeconds(0)
@@ -60,6 +60,7 @@ const runOnStart = async () => {
                     jobTitle: "Server",
                     location: "BC",
                     language: "EN",
+                    minimumPostedDate: minimumPostedDate
                 }
             }
         )
