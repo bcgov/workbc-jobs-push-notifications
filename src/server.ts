@@ -41,6 +41,26 @@ app.use(cookieParser())
 app.use(helmet())
 
 const port = process.env.PORT || "8000"
+const JobTitles = [
+    "Server",
+    "Cook",
+    "Dishwasher",
+    "Cashier",
+    "Food Service Supervisor",
+    "Line Cook",
+    "Prep Cook",
+    "Consultant Information Technology",
+    "Software Developer",
+    "Business Analyst",
+    "Project Manager",
+    "Accountant",
+    "Financial Analyst",
+    "Marketing Manager",
+    "Sales Associate",
+    "Customer Service Representative",
+    "Retail Sales Associate",
+    "Warehouse Associate",
+]
 const runOnStart = async () => {
     console.log("Running initial job search on server start...")
     const minimumPostedDate = new Date()
@@ -53,18 +73,19 @@ const runOnStart = async () => {
     try {
         console.log("Getting list of all stored job searches...")
 
-        const jobsRespTest = await jobsApi.get(
-            "Jobs/SearchJobs",
-            {
-                data: {
-                    jobTitle: "Server",
-                    location: "BC",
-                    language: "EN",
-                    minimumPostedDate: minimumPostedDate
-                }
+        const jobSearchPromises = JobTitles.map((title) => jobsApi.get("Jobs/SearchJobs", {
+            data: {
+                jobTitle: title,
+                location: "BC",
+                language: "EN",
+                minimumPostedDate: minimumPostedDate
             }
-        )
-        console.log("jobsRespTest: ", jobsRespTest.data)
+        }))
+
+        const jobsRespTests = await Promise.all(jobSearchPromises)
+        jobsRespTests.forEach((jobsRespTest, index) => {
+            console.log(`jobsRespTest for ${JobTitles[index]}: `, jobsRespTest.data)
+        })
         // const jobSearches = await db.query(
         //     `
         //     SELECT js.user_id, js.keyword, js.location, js.language, t.token, t.platform
