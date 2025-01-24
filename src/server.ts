@@ -94,6 +94,7 @@ app.listen(port, () => {
     console.log("Jobs API URL: ", process.env.JOBS_API_URL)
     console.log("PG HOST: ", process.env.PGHOST)
     console.log("PG PORT: ", process.env.PGPORT)
+    console.log("TEST TEST")
     runOnStart()
 })
 
