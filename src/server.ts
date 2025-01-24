@@ -60,7 +60,6 @@ const runOnStart = async () => {
                     jobTitle: "Server",
                     location: "BC",
                     language: "EN",
-                    minimumPostedDate: minimumPostedDate
                 }
             }
         )
