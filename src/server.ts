@@ -1,5 +1,6 @@
 import { QueryResult } from "pg"
-import { notificationsApi, jobsApi } from "./config/api-config"
+// import { notificationsApi, jobsApi } from "./config/api-config"
+import { jobsApi } from "./config/api-config"
 
 const express = require("express")
 const cookieParser = require("cookie-parser")
@@ -14,22 +15,22 @@ const corsOptions = {
     optionsSuccessStatus: 200
 }
 
-const manyJobPostingsNavigation = {
-    baseScreen: "Job",
-    props: {
-        screen: "Search"
-    }
-} as const
+// const manyJobPostingsNavigation = {
+//     baseScreen: "Job",
+//     props: {
+//         screen: "Search"
+//     }
+// } as const
 
-const constructOneJobPostingNavigation = (jobId: string) => ({
-    baseScreen: "Job",
-    props: {
-        screen: "JobDetails",
-        params: {
-            itemId: jobId
-        }
-    }
-})
+// const constructOneJobPostingNavigation = (jobId: string) => ({
+//     baseScreen: "Job",
+//     props: {
+//         screen: "JobDetails",
+//         params: {
+//             itemId: jobId
+//         }
+//     }
+// })
 
 const app = express()
 
@@ -55,7 +56,7 @@ cron.schedule("0 8 * * *", async () => {
     minimumPostedDate.setMinutes(0)
     minimumPostedDate.setSeconds(0)
     minimumPostedDate.setMilliseconds(0)
-    const usersNotified: string[] = []
+    // const usersNotified: string[] = []
 
     try {
         console.log("Getting list of all stored job searches...")
@@ -85,37 +86,38 @@ cron.schedule("0 8 * * *", async () => {
                                 }
                             }
                         )
+                        console.log("jobsResp: ", jobsResp.data)
 
                         // if there is new job postings, and the user hasn't been sent a push notification yet, send them one //
-                        if (jobsResp.data.count > 0 && !usersNotified.includes(row.user_id)) {
-                            usersNotified.push(row.user_id)
-                            try {
-                                await notificationsApi.post(
-                                    "Messaging/Send",
-                                    {
-                                        title: row.language.toUpperCase() === "EN"
-                                            ? "New Jobs Posted"
-                                            : "Nouvelles offres d'emploi",
-                                        content: row.language.toUpperCase() === "EN"
-                                            ? "There are new job postings for one or more of your saved job searches!"
-                                            : "Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!",
-                                        token: row.token,
-                                        platform: row.platform,
-                                        dryRun: false,
-                                        data: jobsResp.data.count > 1
-                                            ? manyJobPostingsNavigation : constructOneJobPostingNavigation(jobsResp.data.jobs[0].jobId)
-                                    },
-                                    {
-                                        auth: {
-                                            username: process.env.NOTIFICATIONS_API_USER || "",
-                                            password: process.env.NOTIFICATIONS_API_PASS || ""
-                                        }
-                                    }
-                                )
-                            } catch (e: any) {
-                                console.log("Error sending notification. Message: ", e.message)
-                            }
-                        }
+                        // if (jobsResp.data.count > 0 && !usersNotified.includes(row.user_id)) {
+                        //     usersNotified.push(row.user_id)
+                        //     try {
+                        //         await notificationsApi.post(
+                        //             "Messaging/Send",
+                        //             {
+                        //                 title: row.language.toUpperCase() === "EN"
+                        //                     ? "New Jobs Posted"
+                        //                     : "Nouvelles offres d'emploi",
+                        //                 content: row.language.toUpperCase() === "EN"
+                        //                     ? "There are new job postings for one or more of your saved job searches!"
+                        //                     : "Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!",
+                        //                 token: row.token,
+                        //                 platform: row.platform,
+                        //                 dryRun: false,
+                        //                 data: jobsResp.data.count > 1
+                        //                     ? manyJobPostingsNavigation : constructOneJobPostingNavigation(jobsResp.data.jobs[0].jobId)
+                        //             },
+                        //             {
+                        //                 auth: {
+                        //                     username: process.env.NOTIFICATIONS_API_USER || "",
+                        //                     password: process.env.NOTIFICATIONS_API_PASS || ""
+                        //                 }
+                        //             }
+                        //         )
+                        //     } catch (e: any) {
+                        //         console.log("Error sending notification. Message: ", e.message)
+                        //     }
+                        // }
                     } catch (e: any) {
                         console.log("Error searching jobs. Message: ", e.message)
                     }
