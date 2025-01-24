@@ -52,38 +52,49 @@ const runOnStart = async () => {
 
     try {
         console.log("Getting list of all stored job searches...")
-        const jobSearches = await db.query(
-            `
-            SELECT js.user_id, js.keyword, js.location, js.language, t.token, t.platform
-            FROM job_searches js
-            INNER JOIN tokens t ON js.user_id = t.user_id
-            WHERE js.user_removed = FALSE
-            `,
-            []
-        )
-        console.log("jobSearches: ", jobSearches.rows)
-        console.log("jobSearches count: ", jobSearches.rowCount)
 
-        console.log("Checking for new job postings...")
-        jobSearches.rows.forEach(async (row: any) => {
-            console.log(`keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}`)
-            try {
-                const jobsResp = await jobsApi.get(
-                    "Jobs/SearchJobs",
-                    {
-                        data: {
-                            jobTitle: row.keyword,
-                            location: row.location,
-                            language: row.language,
-                            minimumPostedDate: minimumPostedDate
-                        }
-                    }
-                )
-                console.log("jobsResp: ", jobsResp.data)
-            } catch (e: any) {
-                console.log("Error searching jobs. Message: ", e.message)
+        const jobsRespTest = await jobsApi.get(
+            "Jobs/SearchJobs",
+            {
+                data: {
+                    jobTitle: "Server",
+                    location: "BC",
+                    language: "EN",
+                    minimumPostedDate: minimumPostedDate
+                }
             }
-        })
+        )
+        console.log("jobsRespTest: ", jobsRespTest.data)
+        // const jobSearches = await db.query(
+        //     `
+        //     SELECT js.user_id, js.keyword, js.location, js.language, t.token, t.platform
+        //     FROM job_searches js
+        //     INNER JOIN tokens t ON js.user_id = t.user_id
+        //     WHERE js.user_removed = FALSE
+        //     `,
+        //     []
+        // )
+
+        // console.log("Checking for new job postings...")
+        // jobSearches.rows.forEach(async (row: any) => {
+        //     console.log(`keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}`)
+        //     try {
+        //         const jobsResp = await jobsApi.get(
+        //             "Jobs/SearchJobs",
+        //             {
+        //                 data: {
+        //                     jobTitle: row.keyword,
+        //                     location: row.location,
+        //                     language: row.language,
+        //                     minimumPostedDate: minimumPostedDate
+        //                 }
+        //             }
+        //         )
+        //         console.log("jobsResp: ", jobsResp.data)
+        //     } catch (e: any) {
+        //         console.log("Error searching jobs. Message: ", e.message)
+        //     }
+        // })
 
         console.log("Initial job search completed.")
     } catch (e: any) {
