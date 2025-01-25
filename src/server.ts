@@ -60,11 +60,32 @@ const JobTitles = [
     "Customer Service Representative",
     "Retail Sales Associate",
     "Warehouse Associate",
+    "Graphic Designer",
+    "Web Developer",
+    "Data Scientist",
+    "Network Engineer",
+    "System Administrator",
+    "Product Manager",
+    "HR Manager",
+    "Operations Manager",
+    "Quality Assurance Tester",
+    "Mechanical Engineer",
+    "Electrical Engineer",
+    "Civil Engineer",
+    "Architect",
+    "Pharmacist",
+    "Nurse",
+    "Doctor",
+    "Teacher",
+    "Professor",
+    "Research Scientist",
+    "Lab Technician",
+    "Construction Worker"
 ]
 const runOnStart = async () => {
     console.log("Running initial job search on server start...")
     const minimumPostedDate = new Date()
-    minimumPostedDate.setDate(minimumPostedDate.getDate() - 5)
+    minimumPostedDate.setDate(minimumPostedDate.getDate() - 20)
     minimumPostedDate.setHours(8)
     minimumPostedDate.setMinutes(0)
     minimumPostedDate.setSeconds(0)
