@@ -109,7 +109,8 @@ const runOnStart = async () => {
             try {
                 const { jobId } = jobsRespTest.data.jobs[0]
                 if (jobId) {
-                    await notificationsApi.post(
+                    console.log("Sending notification...")
+                    const resp = await notificationsApi.post(
                         "Messaging/Send",
                         {
                             title: "New Jobs Posted",
@@ -127,6 +128,7 @@ const runOnStart = async () => {
                             }
                         }
                     )
+                    console.log("resp: ", resp)
                 }
             } catch (e: any) {
                 console.log("Error sending notification. Message: ", e.message)
