@@ -107,8 +107,8 @@ const runOnStart = async () => {
         jobsRespTests.forEach(async (jobsRespTest, index) => {
             console.log(`jobsRespTest for ${JobTitles[index]}: `, jobsRespTest.data)
             try {
-                const { jobId } = jobsRespTest.data.jobs[0]
-                if (jobId) {
+                const { JobId } = jobsRespTest.data.jobs[0]
+                if (JobId) {
                     console.log("Sending notification...")
                     const resp = await notificationsApi.post(
                         "Messaging/Send",
@@ -119,7 +119,7 @@ const runOnStart = async () => {
                             token: "fBreEUtiIke6rIYRzi9r2G:APA91bF_WXEh6CyIiOB0qWD75iVuueRiW_CSiryQeX4C_AHYwVJNJMSTbV17CGAIgRnSLXo4zAOHvzh9lDZbaUlJlo089B5Lur2BZkVXZ7edkRjm6zF3QUA",
                             platform: "ios",
                             dryRun: false,
-                            data: constructOneJobPostingNavigation(jobId)
+                            data: constructOneJobPostingNavigation(JobId)
                         },
                         {
                             auth: {
