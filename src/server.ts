@@ -106,26 +106,30 @@ const runOnStart = async () => {
         const jobsRespTests = await Promise.all(jobSearchPromises)
         jobsRespTests.forEach(async (jobsRespTest, index) => {
             console.log(`jobsRespTest for ${JobTitles[index]}: `, jobsRespTest.data)
-            const { jobId } = jobsRespTest.data.jobs[0]
-            if (jobId) {
-                await notificationsApi.post(
-                    "Messaging/Send",
-                    {
-                        title: "New Jobs Posted",
-                        content: "There are new job postings for one or more of your saved job searches!",
-                        // eslint-disable-next-line max-len
-                        token: "fBreEUtiIke6rIYRzi9r2G:APA91bF_WXEh6CyIiOB0qWD75iVuueRiW_CSiryQeX4C_AHYwVJNJMSTbV17CGAIgRnSLXo4zAOHvzh9lDZbaUlJlo089B5Lur2BZkVXZ7edkRjm6zF3QUA",
-                        platform: "ios",
-                        dryRun: false,
-                        data: constructOneJobPostingNavigation(jobId)
-                    },
-                    {
-                        auth: {
-                            username: process.env.NOTIFICATIONS_API_USER || "",
-                            password: process.env.NOTIFICATIONS_API_PASS || ""
+            try {
+                const { jobId } = jobsRespTest.data.jobs[0]
+                if (jobId) {
+                    await notificationsApi.post(
+                        "Messaging/Send",
+                        {
+                            title: "New Jobs Posted",
+                            content: "There are new job postings for one or more of your saved job searches!",
+                            // eslint-disable-next-line max-len
+                            token: "fBreEUtiIke6rIYRzi9r2G:APA91bF_WXEh6CyIiOB0qWD75iVuueRiW_CSiryQeX4C_AHYwVJNJMSTbV17CGAIgRnSLXo4zAOHvzh9lDZbaUlJlo089B5Lur2BZkVXZ7edkRjm6zF3QUA",
+                            platform: "ios",
+                            dryRun: false,
+                            data: constructOneJobPostingNavigation(jobId)
+                        },
+                        {
+                            auth: {
+                                username: process.env.NOTIFICATIONS_API_USER || "",
+                                password: process.env.NOTIFICATIONS_API_PASS || ""
+                            }
                         }
-                    }
-                )
+                    )
+                }
+            } catch (e: any) {
+                console.log("Error sending notification. Message: ", e.message)
             }
         })
         // const jobSearches = await db.query(
