@@ -14,6 +14,23 @@ const corsOptions = {
     optionsSuccessStatus: 200
 }
 
+const searchNavigation = {
+    baseScreen: "Job",
+    props: {
+        screen: "Search"
+    }
+} as const
+
+const constructJobNavigation = (jobId: string) => ({
+    baseScreen: "Job",
+    props: {
+        screen: "JobDetails",
+        params: {
+            itemId: jobId
+        }
+    }
+})
+
 const app = express()
 
 app.use(express.json())
@@ -23,6 +40,7 @@ app.use(cookieParser())
 app.use(helmet())
 
 const port = process.env.PORT || "8000"
+
 app.listen(port, () => {
     console.log(`server started at http://localhost:${port}`)
     console.log("Notifications API URL: ", process.env.NOTIFICATIONS_API_URL)
@@ -74,6 +92,7 @@ cron.schedule("0 8 * * *", async () => {
                         if (jobsResp.data.count > 0 && !usersNotified.includes(row.user_id)) {
                             usersNotified.push(row.user_id)
                             try {
+                                const jobPostingId = jobsResp.data.jobs[0].JobId
                                 await notificationsApi.post(
                                     "Messaging/Send",
                                     {
@@ -85,7 +104,9 @@ cron.schedule("0 8 * * *", async () => {
                                             : "Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!",
                                         token: row.token,
                                         platform: row.platform,
-                                        dryRun: false
+                                        dryRun: false,
+                                        data: jobsResp.data.count > 1 || !jobPostingId
+                                            ? searchNavigation : constructJobNavigation(jobPostingId)
                                     },
                                     {
                                         auth: {
@@ -111,5 +132,4 @@ cron.schedule("0 8 * * *", async () => {
 }, {
     scheduled: true,
     timezone: "America/Los_Angeles"
-    }
-)
+})
