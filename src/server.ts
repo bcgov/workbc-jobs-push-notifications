@@ -14,25 +14,22 @@ const corsOptions = {
     optionsSuccessStatus: 200
 }
 
-const manyJobPostingsNavigation = {
+const searchNavigation = {
     baseScreen: "Job",
     props: {
         screen: "Search"
     }
 } as const
 
-const constructOneJobPostingNavigation = (jobId: string) => {
-    console.log("Constructing job body for id", jobId)
-    return {
-        baseScreen: "Job",
-        props: {
-            screen: "JobDetails",
-            params: {
-                itemId: jobId
-            }
+const constructJobNavigation = (jobId: string) => ({
+    baseScreen: "Job",
+    props: {
+        screen: "JobDetails",
+        params: {
+            itemId: jobId
         }
     }
-}
+})
 
 const app = express()
 
@@ -95,6 +92,7 @@ cron.schedule("0 8 * * *", async () => {
                         if (jobsResp.data.count > 0 && !usersNotified.includes(row.user_id)) {
                             usersNotified.push(row.user_id)
                             try {
+                                const jobPostingId = jobsResp.data.jobs[0].JobId
                                 await notificationsApi.post(
                                     "Messaging/Send",
                                     {
@@ -107,8 +105,8 @@ cron.schedule("0 8 * * *", async () => {
                                         token: row.token,
                                         platform: row.platform,
                                         dryRun: false,
-                                        data: jobsResp.data.count > 1
-                                            ? manyJobPostingsNavigation : constructOneJobPostingNavigation(jobsResp.data.jobs[0].JobId)
+                                        data: jobsResp.data.count > 1 || !jobPostingId
+                                            ? searchNavigation : constructJobNavigation(jobPostingId)
                                     },
                                     {
                                         auth: {
