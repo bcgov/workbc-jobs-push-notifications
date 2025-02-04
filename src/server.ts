@@ -54,6 +54,117 @@ app.listen(port, () => {
 
 // NOTE for daily at 8 use '0 8 * * *'
 
+const row = {
+  location: 'BC',
+  language: 'en',
+  user_id: '661CE107AB6747B488BB667652A6010E',
+  token:
+    'd1ORLlcxnk87i4aJknEt-E:APA91bGLQvn5ye79v__JrV99asD2aGHkLzTesjC53oahJFdFYidRm2jNh5u6ElKZZ7gfXPe643z_75QEESNNmf8elYauN4vP8jpdQkjTKRkUUmQlkFxfz3c',
+  platform: 'ios',
+};
+
+const keywords = [
+  'Software Engineer',
+  'Data Scientist',
+  'Product Manager',
+  'Graphic Designer',
+  'Marketing Specialist',
+  'Sales Manager',
+  'Customer Service Representative',
+  'Business Analyst',
+  'Project Manager',
+  'Web Developer',
+  'Mobile Developer',
+  'DevOps Engineer',
+  'System Administrator',
+  'Network Engineer',
+  'Database Administrator',
+  'IT Support Specialist',
+  'Cybersecurity Analyst',
+  'Cloud Architect',
+  'Machine Learning Engineer',
+  'AI Researcher',
+  'Technical Writer',
+  'UX/UI Designer',
+  'Quality Assurance Engineer',
+  'SEO Specialist',
+  'Content Strategist',
+  'Digital Marketing Manager',
+  'Social Media Manager',
+  'Financial Analyst',
+  'Accountant',
+  'Human Resources Manager',
+  'Recruiter',
+  'Operations Manager',
+  'Office Manager',
+  'Executive Assistant',
+  'Legal Assistant',
+  'Paralegal',
+  'Medical Assistant',
+  'Registered Nurse',
+  'Pharmacist',
+  'Physical Therapist',
+  'Occupational Therapist',
+  'Speech-Language Pathologist',
+  'Radiologic Technologist',
+  'Dental Hygienist',
+  'Veterinary Technician',
+  'Lab Technician',
+  'Research Scientist',
+  'Environmental Scientist',
+  'Civil Engineer',
+  'Mechanical Engineer',
+  'Electrical Engineer',
+  'Chemical Engineer',
+  'Biomedical Engineer',
+  'Aerospace Engineer',
+  'Industrial Engineer',
+  'Manufacturing Engineer',
+  'Materials Scientist',
+  'Geologist',
+  'Geophysicist',
+  'Petroleum Engineer',
+  'Mining Engineer',
+  'Agricultural Engineer',
+  'Food Scientist',
+  'Nutritionist',
+  'Dietitian',
+  'Chef',
+  'Pastry Chef',
+  'Baker',
+  'Butcher',
+  'Fishmonger',
+  'Sommelier',
+  'Barista',
+  'Bartender',
+  'Mixologist',
+  'Waiter',
+  'Waitress',
+  'Host',
+  'Hostess',
+  'Hotel Manager',
+  'Concierge',
+  'Housekeeper',
+  'Tour Guide',
+  'Travel Agent',
+  'Flight Attendant',
+  'Pilot',
+  'Co-Pilot',
+  'Air Traffic Controller',
+  'Marine Biologist',
+  'Oceanographer',
+  'Meteorologist',
+  'Astronomer',
+  'Astrophysicist',
+  'Cosmologist',
+  'Physicist',
+  'Chemist',
+  'Biologist',
+  'Microbiologist',
+  'Geneticist',
+  'Ecologist',
+];
+
 cron.schedule(
   '*/2 * * * *',
   async () => {
@@ -80,16 +191,16 @@ cron.schedule(
         )
         .then(async (jobSearches: QueryResult) => {
           console.log('Checking for new job postings...');
-          console.log('test searches', jobSearches.rows);
           // for each job search, check if there's new job postings //
-          for await (const row of jobSearches.rows) {
-            console.log(
-              `keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}`,
-            );
+          // for await (const row of jobSearches.rows) {
+          for await (const keyword of keywords) {
+            // console.log(
+            //   `keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}`,
+            // );
             try {
               const jobsResp = await jobsApi.get('Jobs/SearchJobs', {
                 data: {
-                  jobTitle: row.keyword,
+                  jobTitle: keyword,
                   location: row.location,
                   language: row.language,
                   minimumPostedDate: minimumPostedDate,
