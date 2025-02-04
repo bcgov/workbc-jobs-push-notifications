@@ -80,6 +80,7 @@ cron.schedule(
         )
         .then(async (jobSearches: QueryResult) => {
           console.log('Checking for new job postings...');
+          console.log('test searches', jobSearches.rows);
           // for each job search, check if there's new job postings //
           for await (const row of jobSearches.rows) {
             console.log(
