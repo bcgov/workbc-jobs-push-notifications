@@ -86,7 +86,6 @@ cron.schedule(
               `keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}`,
             );
             try {
-              console.log('Searching for jobs...', row.keyword);
               const jobsResp = await jobsApi.get('Jobs/SearchJobs', {
                 data: {
                   jobTitle: row.keyword,
