@@ -39,7 +39,10 @@ function filterOutNonFulfielledPromises<T>(
   results: Array<PromiseSettledResult<T>>,
 ): T[] {
   return results
-    .filter(result => result.status === 'fulfilled')
+    .filter(
+      (result): result is PromiseFulfilledResult<T> =>
+        result.status === 'fulfilled',
+    )
     .map(result => result.value);
 }
 
