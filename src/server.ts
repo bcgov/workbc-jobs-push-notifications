@@ -120,6 +120,8 @@ cron.schedule(
         userIdMapToJobSearchArray.push(currentMap);
       }
 
+      console.log('userIdMapToJobSearchArray', userIdMapToJobSearchArray);
+
       for await (const userIdMapToJobSearch of userIdMapToJobSearchArray) {
         const awaitedJobSearches = await Promise.all(
           Array.from(userIdMapToJobSearch).map(
