@@ -7,7 +7,18 @@ const helmet = require('helmet');
 const cors = require('cors');
 const cron = require('node-cron');
 const db = require('./config/db-config');
+type JobSearch = {
+  user_id: string;
+  keyword: string;
+  location: string;
+  language: string;
+  token: string;
+  platform: string;
+};
 
+type JobSearchesResponse = {
+  rows: JobSearch[];
+};
 const corsOptions = {
   origin:
     process.env.ORIGIN_URL ||
@@ -23,6 +34,14 @@ const searchNavigation = {
     screen: 'Search',
   },
 } as const;
+
+function filterOutNonFulfielledPromises<T>(
+  results: Array<PromiseSettledResult<T>>,
+): T[] {
+  return results
+    .filter(result => result.status === 'fulfilled')
+    .map(result => result.value);
+}
 
 const constructJobNavigation = (jobId: string) => ({
   baseScreen: 'Job',
@@ -55,7 +74,7 @@ app.listen(port, () => {
 // NOTE for daily at 8 use '0 8 * * *'
 
 cron.schedule(
-  '0 8 * * *',
+  '*/2 * * * *',
   async () => {
     console.log('===== START CRON JOB =====');
     const minimumPostedDate = new Date();
@@ -68,6 +87,71 @@ cron.schedule(
 
     try {
       console.log('Getting list of all stored job searches...');
+      const jobSearches: JobSearchesResponse = await db.query(
+        `
+          SELECT js.user_id, js.keyword, js.location, js.language, t.token, t.platform
+          FROM job_searches js
+          INNER JOIN tokens t ON js.user_id = t.user_id
+          WHERE js.user_removed = FALSE
+          `,
+        [],
+      );
+      const jobSearchesRows = jobSearches.rows;
+      const userIdMapToJobSearchArray: Map<string, JobSearch[]>[] = [];
+      let currentMap = new Map<string, JobSearch[]>();
+
+      for (const row of jobSearchesRows) {
+        if (currentMap.has(row.user_id)) {
+          currentMap.get(row.user_id)?.push(row);
+        } else {
+          currentMap.set(row.user_id, [row]);
+        }
+
+        if (currentMap.size >= 100) {
+          userIdMapToJobSearchArray.push(currentMap);
+          currentMap = new Map<string, JobSearch[]>();
+        }
+      }
+
+      if (currentMap.size > 0) {
+        userIdMapToJobSearchArray.push(currentMap);
+      }
+
+      for await (const userIdMapToJobSearch of userIdMapToJobSearchArray) {
+        const awaitedJobSearches = await Promise.all(
+          Array.from(userIdMapToJobSearch).map(
+            async ([userId, jobSearches]) => {
+              console.log('Checking for new job postings...');
+              const newJobSearches = jobSearches;
+              const jobSearchPromises = newJobSearches.map(async row => {
+                console.log(
+                  `keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}`,
+                );
+                try {
+                  return await jobsApi.get('Jobs/SearchJobs', {
+                    data: {
+                      jobTitle: row.keyword,
+                      location: row.location,
+                      language: row.language,
+                      minimumPostedDate: minimumPostedDate,
+                    },
+                  });
+                } catch (e: any) {
+                  console.log('Error searching jobs. Message: ', e.message);
+                  return Promise.reject(e);
+                }
+              });
+              const awaitedPromises =
+                await Promise.allSettled(jobSearchPromises);
+              const fulfilledPromises =
+                filterOutNonFulfielledPromises(awaitedPromises);
+              return [userId, fulfilledPromises];
+            },
+          ),
+        );
+        console.log('awaitedJobSearches', awaitedJobSearches);
+      }
+
       await db
         .query(
           `
