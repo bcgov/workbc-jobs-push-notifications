@@ -160,7 +160,7 @@ cron.schedule(
             console.log('userId', userId);
 
             try {
-              const firstJobPostingId = newJobs[0].data.jobs[0].JobId;
+              const firstJobPostingId = newJobs[0]?.data.jobs[0].JobId;
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
               if (userJobSearch) {
                 await notificationsApi.post(
