@@ -86,7 +86,6 @@ cron.schedule(
     minimumPostedDate.setMinutes(0);
     minimumPostedDate.setSeconds(0);
     minimumPostedDate.setMilliseconds(0);
-    const usersNotified: string[] = [];
 
     try {
       console.log('Getting list of all stored job searches...');
