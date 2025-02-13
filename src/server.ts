@@ -67,6 +67,7 @@ app.use(helmet());
 const port = process.env.PORT || '8000';
 
 app.listen(port, () => {
+  console.log('===== STARTING SERVER =====', new Date());
   console.log(`server started at http://localhost:${port}`);
   console.log('Notifications API URL: ', process.env.NOTIFICATIONS_API_URL);
   console.log('Jobs API URL: ', process.env.JOBS_API_URL);
