@@ -157,7 +157,10 @@ cron.schedule(
             },
           ),
         );
-        console.log('awaitedJobSearches', awaitedJobSearches);
+        console.log(
+          'awaitedJobSearches',
+          JSON.stringify(awaitedJobSearches, null, 2),
+        );
       }
 
       await db
