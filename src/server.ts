@@ -158,11 +158,11 @@ cron.schedule(
         await Promise.all(
           awaitedJobSearches.map(async ({userId, newJobs}) => {
             console.log('userId', userId);
-
             try {
               const firstJobPostingId = newJobs[0]?.data.jobs[0].JobId;
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
               if (userJobSearch) {
+                console.log('sending notification to user', userId);
                 await notificationsApi.post(
                   'Messaging/Send',
                   {
