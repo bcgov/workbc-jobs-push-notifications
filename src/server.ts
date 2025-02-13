@@ -174,7 +174,8 @@ cron.schedule(
                       userJobSearch.language.toUpperCase() === 'EN'
                         ? 'There are new job postings for one or more of your saved job searches!'
                         : 'Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!',
-                    token: userJobSearch.token,
+                    token:
+                      'frZOFEdScUoxmN4W-j5J1T:APA91bGC6OCnR4y0MvftcblBcFt_YcmR0N23IrK3GoG_g-Tnv6tiKV3z-wr-XkCdY4QZDxiUTjQiQ7kPKOs5yNU1DUH9M4BSD5Dpo9kKUu7P_k5ExBQKi48',
                     platform: userJobSearch.platform,
                     dryRun: false,
                     data:
