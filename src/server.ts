@@ -155,6 +155,14 @@ cron.schedule(
           ),
         );
         console.log('awaitedJobSearches', awaitedJobSearches);
+        awaitedJobSearches.forEach(([userId, fulfilledPromises]) => {
+          console.log('userId', userId);
+          if (Array.isArray(fulfilledPromises)) {
+            fulfilledPromises.forEach(jobsResp => {
+              console.log('jobsResp', jobsResp.data.jobs[0].JobId);
+            });
+          }
+        });
       }
 
       await db
