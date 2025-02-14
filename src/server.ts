@@ -155,7 +155,9 @@ cron.schedule(
               ).filter(fulfilledPromise => fulfilledPromise !== undefined);
               return {
                 userId: userId,
-                newJobs: fulfilledPromises,
+                newJobs: fulfilledPromises.map(fulfilledPromise => {
+                  return fulfilledPromise.data;
+                }),
               };
             },
           ),
@@ -191,8 +193,8 @@ cron.schedule(
                   },
                   {
                     auth: {
-                      username: 'WBCOESDEV',
-                      password: 'DO_NeRMxZsVPJQ%7_sLazuvTi&v(RN)YZeT/"',
+                      username: process.env.NOTIFICATIONS_API_USER || '',
+                      password: process.env.NOTIFICATIONS_API_PASS || '',
                     },
                   },
                 );
