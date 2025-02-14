@@ -150,14 +150,15 @@ cron.schedule(
               });
               const awaitedPromises =
                 await Promise.allSettled(jobSearchPromises);
-              const fulfilledPromises = filterOutNonFulfielledPromises(
-                awaitedPromises,
-              ).filter(fulfilledPromise => fulfilledPromise !== undefined);
+              const fulfilledPromises =
+                filterOutNonFulfielledPromises(awaitedPromises);
               return {
                 userId: userId,
-                newJobs: fulfilledPromises.map(fulfilledPromise => {
-                  return fulfilledPromise.data;
-                }),
+                newJobs: fulfilledPromises
+                  .map(fulfilledPromise => {
+                    return fulfilledPromise?.data;
+                  })
+                  .filter(data => data !== undefined),
               };
             },
           ),
