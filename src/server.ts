@@ -167,6 +167,7 @@ cron.schedule(
               const firstJobPostingId = newJobs[0]?.data.jobs[0].JobId;
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
               console.log('userJobSearch', userJobSearch);
+              console.log('newJobs', newJobs);
               if (userJobSearch) {
                 console.log('sending notification to user', userId);
                 await notificationsApi.post(
@@ -190,8 +191,8 @@ cron.schedule(
                   },
                   {
                     auth: {
-                      username: process.env.NOTIFICATIONS_API_USER || '',
-                      password: process.env.NOTIFICATIONS_API_PASS || '',
+                      username: 'WBCOESDEV',
+                      password: 'DO_NeRMxZsVPJQ%7_sLazuvTi&v(RN)YZeT/"',
                     },
                   },
                 );
