@@ -170,7 +170,7 @@ cron.schedule(
               if (userJobSearch) {
                 console.log('sending notification to user', userId);
                 await notificationsApi.post(
-                  'Messaging/Send',
+                  'messaging/send',
                   {
                     title:
                       userJobSearch.language.toUpperCase() === 'EN'
