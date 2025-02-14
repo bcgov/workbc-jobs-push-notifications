@@ -161,6 +161,7 @@ cron.schedule(
             try {
               const firstJobPostingId = newJobs[0]?.data.jobs[0].JobId;
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
+              console.log('userJobSearch', userJobSearch);
               if (userJobSearch) {
                 console.log('sending notification to user', userId);
                 await notificationsApi.post(
@@ -174,8 +175,7 @@ cron.schedule(
                       userJobSearch.language.toUpperCase() === 'EN'
                         ? 'There are new job postings for one or more of your saved job searches!'
                         : 'Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!',
-                    token:
-                      'frZOFEdScUoxmN4W-j5J1T:APA91bGC6OCnR4y0MvftcblBcFt_YcmR0N23IrK3GoG_g-Tnv6tiKV3z-wr-XkCdY4QZDxiUTjQiQ7kPKOs5yNU1DUH9M4BSD5Dpo9kKUu7P_k5ExBQKi48',
+                    token: userJobSearch.token,
                     platform: userJobSearch.platform,
                     dryRun: false,
                     data:
