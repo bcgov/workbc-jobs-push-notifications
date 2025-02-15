@@ -197,23 +197,21 @@ cron.schedule(
                 const basicAuth = Buffer.from(
                   `${username}:${password}`,
                 ).toString('base64');
-                await notificationsApi.post(
-                  'messaging/send',
-                  {
+                await fetch('https://api.notifications.com/messaging/send', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${basicAuth}`,
+                  },
+                  body: JSON.stringify({
                     title: 'Title',
                     content: 'Some content',
                     token:
                       'c06BRbWRFkR6sh6Bc6y40F:APA91bEWZ2QX3eADJ9LyeVN8nxdmN44Zre70izip7Xym3G3f6EVt8dRoG9pMiJxTg3shVA0lnJ0TSj0drdCd319V3gk40Bf0YULwsapfS8zxOnX5BdT540M',
                     platform: 'ios',
                     dryRun: true,
-                  },
-                  {
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${basicAuth}`,
-                    },
-                  },
-                );
+                  }),
+                });
                 // await notificationsApi.post(
                 //   'messaging/send',
                 //   {
