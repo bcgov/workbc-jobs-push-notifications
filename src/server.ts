@@ -173,6 +173,10 @@ cron.schedule(
               console.log('newJobs', newJobs);
               if (userJobSearch) {
                 console.log('sending notification to user', userId);
+                console.log('lang', userJobSearch.language);
+                console.log('token', userJobSearch.token);
+                console.log('platform', userJobSearch.platform);
+                console.log('firstJobPostingId', firstJobPostingId);
                 await notificationsApi.post(
                   'messaging/send',
                   {
