@@ -167,7 +167,7 @@ cron.schedule(
           awaitedJobSearches.map(async ({userId, newJobs}) => {
             console.log('userId', userId);
             try {
-              const firstJobPostingId = newJobs[0]?.data?.jobs?.[0]?.JobId;
+              const firstJobPostingId = newJobs[0]?.data?.[0]?.jobs?.[0]?.JobId;
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
               console.log('userJobSearch', userJobSearch);
               console.log('newJobs', newJobs);
@@ -187,6 +187,11 @@ cron.schedule(
                     ? searchNavigation
                     : constructJobNavigation(firstJobPostingId);
                 console.log('data', data);
+                console.log(
+                  'sending notification',
+                  process.env.NOTIFICATIONS_API_USER,
+                  process.env.NOTIFICATIONS_API_PASS,
+                );
                 await notificationsApi.post(
                   'messaging/send',
                   {
