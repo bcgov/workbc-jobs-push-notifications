@@ -192,32 +192,54 @@ cron.schedule(
                   process.env.NOTIFICATIONS_API_USER,
                   process.env.NOTIFICATIONS_API_PASS,
                 );
+                const username = process.env.NOTIFICATIONS_API_USER;
+                const password = process.env.NOTIFICATIONS_API_PASS;
+                const basicAuth = Buffer.from(
+                  `${username}:${password}`,
+                ).toString('base64');
                 await notificationsApi.post(
                   'messaging/send',
                   {
-                    title:
-                      userJobSearch.language.toUpperCase() === 'EN'
-                        ? 'New Jobs Posted'
-                        : "Nouvelles offres d'emploi",
-                    content:
-                      userJobSearch.language.toUpperCase() === 'EN'
-                        ? 'There are new job postings for one or more of your saved job searches!'
-                        : 'Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!',
-                    token: userJobSearch.token,
-                    platform: userJobSearch.platform,
-                    dryRun: false,
-                    data:
-                      newJobs.length > 1 || !firstJobPostingId
-                        ? searchNavigation
-                        : constructJobNavigation(firstJobPostingId),
+                    title: 'Title',
+                    content: 'Some content',
+                    token:
+                      'c06BRbWRFkR6sh6Bc6y40F:APA91bEWZ2QX3eADJ9LyeVN8nxdmN44Zre70izip7Xym3G3f6EVt8dRoG9pMiJxTg3shVA0lnJ0TSj0drdCd319V3gk40Bf0YULwsapfS8zxOnX5BdT540M',
+                    platform: 'ios',
+                    dryRun: true,
                   },
                   {
-                    auth: {
-                      username: process.env.NOTIFICATIONS_API_USER || '',
-                      password: process.env.NOTIFICATIONS_API_PASS || '',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${basicAuth}`,
                     },
                   },
                 );
+                // await notificationsApi.post(
+                //   'messaging/send',
+                //   {
+                //     title:
+                //       userJobSearch.language.toUpperCase() === 'EN'
+                //         ? 'New Jobs Posted'
+                //         : "Nouvelles offres d'emploi",
+                //     content:
+                //       userJobSearch.language.toUpperCase() === 'EN'
+                //         ? 'There are new job postings for one or more of your saved job searches!'
+                //         : 'Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!',
+                //     token: userJobSearch.token,
+                //     platform: userJobSearch.platform,
+                //     dryRun: false,
+                //     data:
+                //       newJobs.length > 1 || !firstJobPostingId
+                //         ? searchNavigation
+                //         : constructJobNavigation(firstJobPostingId),
+                //   },
+                //   {
+                //     auth: {
+                //       username: process.env.NOTIFICATIONS_API_USER || '',
+                //       password: process.env.NOTIFICATIONS_API_PASS || '',
+                //     },
+                //   },
+                // );
               }
             } catch (e: any) {
               console.log('Error sending notification. Message: ', e.message);
