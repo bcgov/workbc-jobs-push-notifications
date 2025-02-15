@@ -197,7 +197,7 @@ cron.schedule(
                 const basicAuth = Buffer.from(
                   `${username}:${password}`,
                 ).toString('base64');
-                await fetch('https://api.notifications.com/messaging/send', {
+                await fetch('https://m-notif-dev.es.workbc.ca/messaging/send', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
