@@ -177,6 +177,16 @@ cron.schedule(
                 console.log('token', userJobSearch.token);
                 console.log('platform', userJobSearch.platform);
                 console.log('firstJobPostingId', firstJobPostingId);
+                console.log(
+                  'newJobs.length',
+                  newJobs.length,
+                  !firstJobPostingId,
+                );
+                const data =
+                  newJobs.length > 1 || !firstJobPostingId
+                    ? searchNavigation
+                    : constructJobNavigation(firstJobPostingId);
+                console.log('data', data);
                 await notificationsApi.post(
                   'messaging/send',
                   {
