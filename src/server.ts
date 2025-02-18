@@ -97,9 +97,9 @@ cron.schedule(
           INNER JOIN tokens t ON js.user_id = t.user_id
           WHERE js.user_removed = FALSE
           AND t.created_date = (
-        SELECT MAX(created_date)
-        FROM tokens
-        WHERE user_id = js.user_id
+          SELECT MAX(created_date)
+          FROM tokens
+          WHERE user_id = js.user_id
           )
           `,
         [],
