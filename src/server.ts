@@ -1,4 +1,3 @@
-import {QueryResult} from 'pg';
 import {notificationsApi, jobsApi} from './config/api-config';
 
 const express = require('express');
