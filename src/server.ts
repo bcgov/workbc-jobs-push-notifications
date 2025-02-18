@@ -168,7 +168,13 @@ cron.schedule(
             try {
               const firstJobPostingId = newJobs[0]?.data?.[0]?.jobs?.[0]?.JobId;
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
+              console.log('User Job Search:', newJobs);
               if (userJobSearch) {
+                const data =
+                  newJobs.length > 1 || !firstJobPostingId
+                    ? searchNavigation
+                    : constructJobNavigation(firstJobPostingId);
+                console.log('Sending notification for:', data);
                 await notificationsApi.post(
                   'messaging/send',
                   {
@@ -183,10 +189,7 @@ cron.schedule(
                     token: userJobSearch.token,
                     platform: userJobSearch.platform,
                     dryRun: false,
-                    data:
-                      newJobs.length > 1 || !firstJobPostingId
-                        ? searchNavigation
-                        : constructJobNavigation(firstJobPostingId),
+                    data,
                   },
                   {
                     auth: {
