@@ -167,8 +167,10 @@ cron.schedule(
           awaitedJobSearches.map(async ({userId, newJobs}) => {
             try {
               const firstJobPostingId = newJobs[0]?.data?.[0]?.jobs?.[0]?.JobId;
+              console.log('First Job Posting Id:', firstJobPostingId);
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
               console.log('User Job Search:', newJobs);
+              console.log('User Job Search length', newJobs.length);
               if (userJobSearch) {
                 const data =
                   newJobs.length > 1 || !firstJobPostingId
