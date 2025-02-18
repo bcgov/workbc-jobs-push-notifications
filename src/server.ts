@@ -78,7 +78,7 @@ app.listen(port, () => {
 // NOTE for daily at 8 use '0 8 * * *'
 
 cron.schedule(
-  '*/2 * * * *',
+  '0 8 * * *',
   async () => {
     console.log('===== START CRON JOB =====');
     const minimumPostedDate = new Date();
@@ -167,16 +167,12 @@ cron.schedule(
           awaitedJobSearches.map(async ({userId, newJobs}) => {
             try {
               const firstJobPostingId = newJobs[0]?.jobs?.[0]?.JobId;
-              console.log('First Job Posting Id:', firstJobPostingId);
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
-              console.log('User Job Search:', newJobs);
-              console.log('User Job Search length', newJobs.length);
               if (userJobSearch) {
                 const data =
                   newJobs.length > 1 || !firstJobPostingId
                     ? searchNavigation
                     : constructJobNavigation(firstJobPostingId);
-                console.log('Sending notification for:', data);
                 await notificationsApi.post(
                   'messaging/send',
                   {
