@@ -75,7 +75,7 @@ app.listen(port, () => {
 // NOTE for daily at 8 use '0 8 * * *'
 
 cron.schedule(
-  '*/2 * * * *',
+  '0 8 * * *',
   async () => {
     console.log('===== START CRON JOB =====');
     const minimumPostedDate = new Date();
@@ -89,7 +89,7 @@ cron.schedule(
       console.log('Getting list of all stored job searches...');
       const jobSearches: JobSearchesResponse = await db.query(
         `
-          SELECT DISTINCT ON (js.keyword, js.location) js.user_id, js.keyword, js.location, js.language, t.token, t.platform
+          SELECT js.user_id, js.keyword, js.location, js.language, t.token, t.platform
           FROM job_searches js
           INNER JOIN tokens t ON js.user_id = t.user_id
           WHERE js.user_removed = FALSE
@@ -98,7 +98,6 @@ cron.schedule(
           FROM tokens
           WHERE user_id = js.user_id
           )
-          ORDER BY js.keyword, js.location, t.created_date DESC
           `,
         [],
       );
