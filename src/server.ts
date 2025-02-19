@@ -34,9 +34,7 @@ const searchNavigation = {
   },
 } as const;
 
-function filterOutNonFulfielledPromises<T>(
-  results: Array<PromiseSettledResult<T>>,
-): T[] {
+function getFulfilledPromises<T>(results: Array<PromiseSettledResult<T>>): T[] {
   return results
     .filter(
       (result): result is PromiseFulfilledResult<T> =>
@@ -103,11 +101,10 @@ cron.schedule(
           `,
         [],
       );
-      const jobSearchesRows = jobSearches.rows;
-      const userIdMapToJobSearchArray: Map<string, JobSearch[]>[] = [];
+      const maps: Map<string, JobSearch[]>[] = [];
       let currentMap = new Map<string, JobSearch[]>();
 
-      for (const row of jobSearchesRows) {
+      for (const row of jobSearches.rows) {
         if (currentMap.has(row.user_id)) {
           currentMap.get(row.user_id)?.push(row);
         } else {
@@ -115,17 +112,17 @@ cron.schedule(
         }
 
         if (currentMap.size >= 100) {
-          userIdMapToJobSearchArray.push(currentMap);
+          maps.push(currentMap);
           currentMap = new Map<string, JobSearch[]>();
         }
       }
 
       if (currentMap.size > 0) {
-        userIdMapToJobSearchArray.push(currentMap);
+        maps.push(currentMap);
       }
 
-      for await (const userIdMapToJobSearch of userIdMapToJobSearchArray) {
-        const awaitedJobSearches = await Promise.all(
+      for await (const userIdMapToJobSearch of maps) {
+        const resolvedJobSearches = await Promise.all(
           Array.from(userIdMapToJobSearch).map(
             async ([userId, jobSearches]) => {
               console.log('Checking for new job postings...');
@@ -149,8 +146,7 @@ cron.schedule(
               });
               const awaitedPromises =
                 await Promise.allSettled(jobSearchPromises);
-              const fulfilledPromises =
-                filterOutNonFulfielledPromises(awaitedPromises);
+              const fulfilledPromises = getFulfilledPromises(awaitedPromises);
               return {
                 userId: userId,
                 newJobs: fulfilledPromises
@@ -163,7 +159,7 @@ cron.schedule(
           ),
         );
         await Promise.all(
-          awaitedJobSearches.map(async ({userId, newJobs}) => {
+          resolvedJobSearches.map(async ({userId, newJobs}) => {
             try {
               const firstJobPostingId = newJobs[0]?.jobs?.[0]?.JobId;
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
