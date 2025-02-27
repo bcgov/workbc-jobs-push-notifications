@@ -93,23 +93,25 @@ cron.schedule(
           FROM job_searches js
           INNER JOIN tokens t ON js.user_id = t.user_id
           WHERE js.user_removed = FALSE
-          AND t.created_date = (
-          SELECT MAX(created_date)
-          FROM tokens
-          WHERE user_id = js.user_id
-          )
           `,
         [],
       );
+
+      const allSearchesMap = new Map<string, JobSearch[]>();
+
+      for (const row of jobSearches.rows) {
+        if (allSearchesMap.has(row.user_id)) {
+          allSearchesMap.get(row.user_id)?.push(row);
+        } else {
+          allSearchesMap.set(row.user_id, [row]);
+        }
+      }
+
       const maps: Map<string, JobSearch[]>[] = [];
       let currentMap = new Map<string, JobSearch[]>();
 
-      for (const row of jobSearches.rows) {
-        if (currentMap.has(row.user_id)) {
-          currentMap.get(row.user_id)?.push(row);
-        } else {
-          currentMap.set(row.user_id, [row]);
-        }
+      for (const [userId, jobSearches] of allSearchesMap) {
+        currentMap.set(userId, jobSearches);
 
         if (currentMap.size >= 100) {
           maps.push(currentMap);
@@ -129,7 +131,7 @@ cron.schedule(
               const newJobSearches = jobSearches;
               const jobSearchPromises = newJobSearches.map(async row => {
                 console.log(
-                  `keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}`,
+                  `keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}, minimumPostedDate: ${minimumPostedDate}`,
                 );
                 try {
                   return await jobsApi.get('Jobs/SearchJobs', {
