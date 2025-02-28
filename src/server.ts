@@ -113,7 +113,7 @@ cron.schedule(
       for (const [userId, jobSearches] of allSearchesMap) {
         currentMap.set(userId, jobSearches);
 
-        if (currentMap.size >= 100) {
+        if (currentMap.size >= 3) {
           maps.push(currentMap);
           currentMap = new Map<string, JobSearch[]>();
         }
@@ -163,11 +163,16 @@ cron.schedule(
         await Promise.all(
           resolvedJobSearches.map(async ({userId, newJobs}) => {
             try {
-              const firstJobPostingId = newJobs[0]?.jobs?.[0]?.JobId;
               const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
               if (userJobSearch) {
+                const isNewJobs = newJobs.some(
+                  newJob => newJob.new > 0 && newJob.jobs.length > 0,
+                );
+                const firstJobPostingId = isNewJobs
+                  ? newJobs.find(newJob => newJob.new > 0)?.jobs[0].JobId
+                  : undefined;
                 const data =
-                  newJobs.length > 1 || !firstJobPostingId
+                  isNewJobs || !firstJobPostingId
                     ? searchNavigation
                     : constructJobNavigation(firstJobPostingId);
                 await notificationsApi.post(
