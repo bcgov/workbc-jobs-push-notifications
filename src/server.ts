@@ -43,6 +43,10 @@ function getFulfilledPromises<T>(results: Array<PromiseSettledResult<T>>): T[] {
     .map(result => result.value);
 }
 
+function removeQuotes(str: string): string {
+  return str.replace(/['"]+/g, '');
+}
+
 const constructJobNavigation = (jobId: string) => ({
   baseScreen: 'Job',
   props: {
@@ -97,113 +101,111 @@ cron.schedule(
         [],
       );
 
-      const allSearchesMap = new Map<string, JobSearch[]>();
+      const userIdToSearchesMap = new Map<string, JobSearch[]>();
+      const keywordLocationMap = new Map<string, string[]>();
 
       for (const row of jobSearches.rows) {
-        if (allSearchesMap.has(row.user_id)) {
-          allSearchesMap.get(row.user_id)?.push(row);
+        const key = `${row.keyword}-${row.location}-${row.language}`;
+        if (keywordLocationMap.has(key)) {
+          keywordLocationMap.get(key)?.push(row.user_id);
         } else {
-          allSearchesMap.set(row.user_id, [row]);
+          keywordLocationMap.set(key, [row.user_id]);
+        }
+        if (userIdToSearchesMap.has(row.user_id)) {
+          userIdToSearchesMap.get(row.user_id)?.push(row);
+        } else {
+          userIdToSearchesMap.set(row.user_id, [row]);
         }
       }
+      console.log('largeMap: ', userIdToSearchesMap.size);
+      console.log('keywordLocationMap: ', keywordLocationMap.size);
+      const sortedKeywordLocationMap = new Map(
+        [...keywordLocationMap.entries()].sort(
+          (a, b) => b[1].length - a[1].length,
+        ),
+      );
 
-      const maps: Map<string, JobSearch[]>[] = [];
-      let currentMap = new Map<string, JobSearch[]>();
+      for await (const [key, value] of sortedKeywordLocationMap) {
+        const [keyword, location, language] = key.split('-');
+        console.log(
+          `keyword: ${removeQuotes(keyword).trim()}, location: ${location}, language: ${language}`,
+        );
+        const hasUserThatNeedsNotification = value.some(userId =>
+          userIdToSearchesMap.has(userId),
+        );
 
-      for (const [userId, jobSearches] of allSearchesMap) {
-        currentMap.set(userId, jobSearches);
-
-        if (currentMap.size >= 3) {
-          maps.push(currentMap);
-          currentMap = new Map<string, JobSearch[]>();
+        if (!hasUserThatNeedsNotification) {
+          continue;
         }
-      }
 
-      if (currentMap.size > 0) {
-        maps.push(currentMap);
-      }
-
-      for await (const userIdMapToJobSearch of maps) {
-        const resolvedJobSearches = await Promise.all(
-          Array.from(userIdMapToJobSearch).map(
-            async ([userId, jobSearches]) => {
-              console.log('Checking for new job postings...');
-              const newJobSearches = jobSearches;
-              const jobSearchPromises = newJobSearches.map(async row => {
-                console.log(
-                  `keyword: ${row.keyword}, location: ${row.location}, user: ${row.user_id}, minimumPostedDate: ${minimumPostedDate}`,
-                );
-                try {
-                  return await jobsApi.get('Jobs/SearchJobs', {
-                    data: {
-                      jobTitle: row.keyword,
-                      location: row.location,
-                      language: row.language,
-                      minimumPostedDate: minimumPostedDate,
-                    },
-                  });
-                } catch (e: any) {
-                  console.log('Error searching jobs. Message: ', e.message);
-                }
-              });
-              const awaitedPromises =
-                await Promise.allSettled(jobSearchPromises);
-              const fulfilledPromises = getFulfilledPromises(awaitedPromises);
-              return {
-                userId: userId,
-                newJobs: fulfilledPromises
-                  .map(fulfilledPromise => {
-                    return fulfilledPromise?.data;
-                  })
-                  .filter(data => data !== undefined),
-              };
+        try {
+          const response = await jobsApi.get('Jobs/SearchJobs', {
+            data: {
+              jobTitle: keyword ? removeQuotes(keyword).trim() : '',
+              location: location ? removeQuotes(location) : '',
+              language: language ? removeQuotes(language) : 'EN',
+              minimumPostedDate: minimumPostedDate,
             },
-          ),
-        );
-        await Promise.all(
-          resolvedJobSearches.map(async ({userId, newJobs}) => {
-            try {
-              const userJobSearch = userIdMapToJobSearch.get(userId)?.[0];
-              if (userJobSearch) {
-                const isNewJobs = newJobs.some(
-                  newJob => newJob.new > 0 && newJob.jobs.length > 0,
+          });
+          const responseData = response.data;
+          const isNewJobs =
+            responseData.new > 0 && responseData.jobs.length > 0;
+          if (isNewJobs) {
+            console.log('list of users with same search', value);
+            for await (const userId of value) {
+              if (userIdToSearchesMap.has(userId)) {
+                const userJobSearches = userIdToSearchesMap.get(userId);
+                const currentSearch = userJobSearches?.find(
+                  search =>
+                    search.keyword === keyword && search.location === location,
                 );
-                const firstJobPostingId = isNewJobs
-                  ? newJobs.find(newJob => newJob.new > 0)?.jobs[0].JobId
-                  : undefined;
-                const data =
-                  isNewJobs || !firstJobPostingId
-                    ? searchNavigation
-                    : constructJobNavigation(firstJobPostingId);
-                await notificationsApi.post(
-                  'messaging/send',
-                  {
-                    title:
-                      userJobSearch.language.toUpperCase() === 'EN'
-                        ? 'New Jobs Posted'
-                        : "Nouvelles offres d'emploi",
-                    content:
-                      userJobSearch.language.toUpperCase() === 'EN'
-                        ? 'There are new job postings for one or more of your saved job searches!'
-                        : 'Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!',
-                    token: userJobSearch.token,
-                    platform: userJobSearch.platform,
-                    dryRun: false,
-                    data,
-                  },
-                  {
-                    auth: {
-                      username: process.env.NOTIFICATIONS_API_USER || '',
-                      password: process.env.NOTIFICATIONS_API_PASS || '',
-                    },
-                  },
-                );
+                if (currentSearch) {
+                  const firstJobId = responseData.jobs[0].JobId;
+
+                  const data =
+                    (responseData.new > 1 && responseData.jobs.length > 0) ||
+                    !firstJobId
+                      ? searchNavigation
+                      : constructJobNavigation(firstJobId);
+                  try {
+                    await notificationsApi.post(
+                      'messaging/send',
+                      {
+                        title:
+                          currentSearch.language.toUpperCase() === 'EN'
+                            ? 'New Jobs Posted'
+                            : "Nouvelles offres d'emploi",
+                        content:
+                          currentSearch.language.toUpperCase() === 'EN'
+                            ? 'There are new job postings for one or more of your saved job searches!'
+                            : 'Il y a de nouvelles offres d’emploi pour une ou plusieurs de vos recherches d’emploi sauvegardées!',
+                        token: currentSearch.token,
+                        platform: currentSearch.platform,
+                        dryRun: false,
+                        data,
+                      },
+                      {
+                        auth: {
+                          username: process.env.NOTIFICATIONS_API_USER || '',
+                          password: process.env.NOTIFICATIONS_API_PASS || '',
+                        },
+                      },
+                    );
+                    userIdToSearchesMap.delete(userId);
+                    console.log('size of userId map', userIdToSearchesMap.size);
+                  } catch (e: any) {
+                    console.log(
+                      'Error sending notification. Message: ',
+                      e.message,
+                    );
+                  }
+                }
               }
-            } catch (e: any) {
-              console.log('Error sending notification. Message: ', e.message);
             }
-          }),
-        );
+          }
+        } catch (e: any) {
+          console.log('Error searching jobs. Message: ', e.message);
+        }
       }
       console.log('===== END CRON JOB =====');
     } catch (e: any) {
