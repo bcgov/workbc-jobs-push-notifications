@@ -43,9 +43,6 @@ function getFulfilledPromises<T>(results: Array<PromiseSettledResult<T>>): T[] {
     .map(result => result.value);
 }
 
-function removeQuotes(str: string): string {
-  return str.replace(/['"]+/g, '');
-}
 
 const constructJobNavigation = (jobId: string) => ({
   baseScreen: 'Job',
@@ -128,7 +125,7 @@ cron.schedule(
       for await (const [key, value] of sortedKeywordLocationMap) {
         const [keyword, location, language] = key.split('-');
         console.log(
-          `keyword: ${removeQuotes(keyword).trim()}, location: ${location}, language: ${language}`,
+          `keyword: ${keyword}, location: ${location}, language: ${language}`,
         );
         const hasUserThatNeedsNotification = value.some(userId =>
           userIdToSearchesMap.has(userId),
@@ -141,9 +138,9 @@ cron.schedule(
         try {
           const response = await jobsApi.get('Jobs/SearchJobs', {
             data: {
-              jobTitle: removeQuotes(keyword).trim(),
-              location: removeQuotes(location),
-              language: removeQuotes(language),
+              jobTitle: keyword,
+              location: location,
+              language: language,
               minimumPostedDate: minimumPostedDate,
             },
           });
