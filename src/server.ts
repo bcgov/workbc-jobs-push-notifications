@@ -141,9 +141,9 @@ cron.schedule(
         try {
           const response = await jobsApi.get('Jobs/SearchJobs', {
             data: {
-              jobTitle: keyword ? removeQuotes(keyword).trim() : '',
-              location: location ? removeQuotes(location) : '',
-              language: language ? removeQuotes(language) : 'EN',
+              jobTitle: removeQuotes(keyword).trim(),
+              location: removeQuotes(location),
+              language: removeQuotes(language),
               minimumPostedDate: minimumPostedDate,
             },
           });
