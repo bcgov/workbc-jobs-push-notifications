@@ -98,24 +98,27 @@ cron.schedule(
         [],
       );
 
-      const userIdToSearchesMap = new Map<string, JobSearch[]>();
+      const uniqueSearchesToUserIDs = new Map<string, JobSearch[]>();
       const keywordLocationMap = new Map<string, string[]>();
 
       for (const row of jobSearches.rows) {
-        const key = `${row.keyword}-${row.location}-${row.language}`;
+        const key = `${row.keyword}#${row.location}#${row.language}`;
         if (keywordLocationMap.has(key)) {
           keywordLocationMap.get(key)?.push(row.user_id);
         } else {
           keywordLocationMap.set(key, [row.user_id]);
         }
-        if (userIdToSearchesMap.has(row.user_id)) {
-          userIdToSearchesMap.get(row.user_id)?.push(row);
+        if (uniqueSearchesToUserIDs.has(row.user_id)) {
+          uniqueSearchesToUserIDs.get(row.user_id)?.push(row);
         } else {
           userIdToSearchesMap.set(row.user_id, [row]);
         }
       }
-      console.log('largeMap: ', userIdToSearchesMap.size);
-      console.log('keywordLocationMap: ', keywordLocationMap.size);
+      console.log('UserID to Searches map size:: ', userIdToSearchesMap.size);
+      console.log(
+        'Keyword-Location to UserID map size: ',
+        keywordLocationMap.size,
+      );
       const sortedKeywordLocationMap = new Map(
         [...keywordLocationMap.entries()].sort(
           (a, b) => b[1].length - a[1].length,
@@ -123,12 +126,12 @@ cron.schedule(
       );
 
       for await (const [key, value] of sortedKeywordLocationMap) {
-        const [keyword, location, language] = key.split('-');
+        const [keyword, location, language] = key.split('#');
         console.log(
           `keyword: ${keyword}, location: ${location}, language: ${language}`,
         );
         const hasUserThatNeedsNotification = value.some(userId =>
-          userIdToSearchesMap.has(userId),
+          uniqueSearchesToUserIDs.has(userId),
         );
 
         if (!hasUserThatNeedsNotification) {
@@ -148,10 +151,9 @@ cron.schedule(
           const isNewJobs =
             responseData.new > 0 && responseData.jobs.length > 0;
           if (isNewJobs) {
-            console.log('list of users with same search', value);
             for await (const userId of value) {
-              if (userIdToSearchesMap.has(userId)) {
-                const userJobSearches = userIdToSearchesMap.get(userId);
+              if (uniqueSearchesToUserIDs.has(userId)) {
+                const userJobSearches = uniqueSearchesToUserIDs.get(userId);
                 const currentSearch = userJobSearches?.find(
                   search =>
                     search.keyword === keyword && search.location === location,
@@ -188,8 +190,11 @@ cron.schedule(
                         },
                       },
                     );
-                    userIdToSearchesMap.delete(userId);
-                    console.log('size of userId map', userIdToSearchesMap.size);
+                    uniqueSearchesToUserIDs.delete(userId);
+                    console.log(
+                      'UserID to Searches map size: ',
+                      uniqueSearchesToUserIDs.size,
+                    );
                   } catch (e: any) {
                     console.log(
                       'Error sending notification. Message: ',
