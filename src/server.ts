@@ -99,34 +99,42 @@ cron.schedule(
       );
 
       const uniqueSearchesToUserIDs = new Map<string, JobSearch[]>();
-      const keywordLocationMap = new Map<string, string[]>();
+      const keywordLocationLangToUserIDs = new Map<string, string[]>();
 
       for (const row of jobSearches.rows) {
-        const key = `${row.keyword}#${row.location}#${row.language}`;
-        if (keywordLocationMap.has(key)) {
-          keywordLocationMap.get(key)?.push(row.user_id);
+        const keyObject = {
+          keyword: row.keyword,
+          location: row.location,
+          language: row.language,
+        };
+        const key = JSON.stringify(keyObject);
+        if (keywordLocationLangToUserIDs.has(key)) {
+          keywordLocationLangToUserIDs.get(key)?.push(row.user_id);
         } else {
-          keywordLocationMap.set(key, [row.user_id]);
+          keywordLocationLangToUserIDs.set(key, [row.user_id]);
         }
         if (uniqueSearchesToUserIDs.has(row.user_id)) {
           uniqueSearchesToUserIDs.get(row.user_id)?.push(row);
         } else {
-          userIdToSearchesMap.set(row.user_id, [row]);
+          uniqueSearchesToUserIDs.set(row.user_id, [row]);
         }
       }
-      console.log('UserID to Searches map size:: ', userIdToSearchesMap.size);
+      console.log(
+        'UserID to Searches map size:: ',
+        uniqueSearchesToUserIDs.size,
+      );
       console.log(
         'Keyword-Location to UserID map size: ',
-        keywordLocationMap.size,
+        keywordLocationLangToUserIDs.size,
       );
       const sortedKeywordLocationMap = new Map(
-        [...keywordLocationMap.entries()].sort(
+        [...keywordLocationLangToUserIDs.entries()].sort(
           (a, b) => b[1].length - a[1].length,
         ),
       );
 
       for await (const [key, value] of sortedKeywordLocationMap) {
-        const [keyword, location, language] = key.split('#');
+        const {keyword, location, language} = JSON.parse(key);
         console.log(
           `keyword: ${keyword}, location: ${location}, language: ${language}`,
         );
