@@ -93,7 +93,9 @@ cron.schedule(
           SELECT js.user_id, js.keyword, js.location, js.language, t.token, t.platform
           FROM job_searches js
           INNER JOIN tokens t ON js.user_id = t.user_id
+          LEFT JOIN user_settings us ON js.user_id = us.user_id
           WHERE js.user_removed = FALSE
+          AND (us.job_push_notifications_frequency = 'daily' OR us.job_push_notifications_frequency IS NULL)
           `,
         [],
       );
@@ -220,6 +222,211 @@ cron.schedule(
       console.log('===== END CRON JOB =====');
     } catch (e: any) {
       console.log(e.message);
+    }
+  },
+  {
+    scheduled: true,
+    timezone: 'America/Los_Angeles',
+  },
+);
+
+// NOTE for weekly at 8 use '0 8 * * 1'
+
+type SearchObject = {
+  keyword: string;
+  location: string;
+  language: string;
+  token: string;
+  platform: string;
+};
+
+const setUniqueSearchesToUserIDs = (
+  rows: JobSearch[],
+): Map<string, SearchObject[]> => {
+  const uniqueSearchesToUserIDs = new Map<string, SearchObject[]>();
+
+  for (const row of rows) {
+    const searchObject: SearchObject = {
+      keyword: row.keyword,
+      location: row.location,
+      language: row.language,
+      token: row.token,
+      platform: row.platform,
+    };
+
+    const key = `${row.user_id}-${row.token}`;
+
+    if (uniqueSearchesToUserIDs.has(key)) {
+      uniqueSearchesToUserIDs.get(key)?.push(searchObject);
+    } else {
+      uniqueSearchesToUserIDs.set(key, [searchObject]);
+    }
+  }
+  return uniqueSearchesToUserIDs;
+};
+
+cron.schedule(
+  '0 8 * * 1', // Every Monday at 8 AM
+  async () => {
+    console.log('===== START WEEKLY NOTIFICATION CRON JOB =====');
+
+    try {
+      console.log('Getting list of users with weekly digest preference...');
+      const weeklyUsers = await db.query(
+        `
+        SELECT t.user_id, t.token, t.platform, js.language, js.keyword, js.location
+        FROM tokens t
+        INNER JOIN user_settings us ON t.user_id = us.user_id
+        INNER JOIN job_searches js ON t.user_id = js.user_id
+        WHERE us.job_push_notifications_frequency = 'weekly'
+        AND js.user_removed = FALSE
+        `,
+        [],
+      );
+
+      const uniqueSearchesToUserIDs = setUniqueSearchesToUserIDs(
+        weeklyUsers.rows,
+      );
+
+      for (const [key, value] of uniqueSearchesToUserIDs.entries()) {
+        const userId = key.split('-')[0];
+        try {
+          await notificationsApi.post(
+            'messaging/send',
+            {
+              title:
+                value[0].language?.toUpperCase() === 'FR'
+                  ? 'Votre résumé hebdomadaire'
+                  : 'Your Weekly Job Digest',
+              content:
+                value[0].language?.toUpperCase() === 'FR'
+                  ? "Votre résumé hebdomadaire des offres d'emploi est prêt. Consultez votre application pour voir les nouveaux emplois!"
+                  : 'Your weekly job digest is ready. Check your app to see the new jobs!',
+              token: value[0].token,
+              platform: value[0].platform,
+              dryRun: false,
+              data: {
+                baseScreen: 'Job',
+                props: {
+                  screen: 'Results',
+                  params: {
+                    isPushNotification: true,
+                    pushNotificationsPayload: value?.map(search => ({
+                      keyword: search.keyword,
+                      city: search.location,
+                      language: search.language,
+                      digest: 'weekly',
+                    })),
+                  },
+                },
+              },
+            },
+            {
+              auth: {
+                username: process.env.NOTIFICATIONS_API_USER || '',
+                password: process.env.NOTIFICATIONS_API_PASS || '',
+              },
+            },
+          );
+
+          console.log(`Successfully sent notification to user: ${userId}`);
+        } catch (e: any) {
+          console.log(
+            `Error sending weekly digest notification to user ${userId}. Message:`,
+            e.message,
+          );
+        }
+      }
+
+      console.log('===== END WEEKLY NOTIFICATION CRON JOB =====');
+    } catch (e: any) {
+      console.log('Weekly notification error:', e.message);
+    }
+  },
+  {
+    scheduled: true,
+    timezone: 'America/Los_Angeles',
+  },
+);
+
+cron.schedule(
+  '0 8 1 * *', // Every 1st day of the month at 8 AM
+  async () => {
+    console.log('===== START MONTHLY NOTIFICATION CRON JOB =====');
+
+    try {
+      console.log('Getting list of users with monthly digest preference...');
+      const monthlyUsers = await db.query(
+        `
+        SELECT t.user_id, t.token, t.platform, js.language, js.keyword, js.location
+        FROM tokens t
+        INNER JOIN user_settings us ON t.user_id = us.user_id
+        INNER JOIN job_searches js ON t.user_id = js.user_id
+        WHERE us.job_push_notifications_frequency = 'monthly'
+        AND js.user_removed = FALSE
+        `,
+        [],
+      );
+
+      const uniqueSearchesToUserIDs = setUniqueSearchesToUserIDs(
+        monthlyUsers.rows,
+      );
+
+      for (const [key, value] of uniqueSearchesToUserIDs.entries()) {
+        const userId = key.split('-')[0];
+        try {
+          await notificationsApi.post(
+            'messaging/send',
+            {
+              title:
+                value[0].language?.toUpperCase() === 'FR'
+                  ? 'Votre résumé mensuel'
+                  : 'Your Monthly Job Digest',
+              content:
+                value[0].language?.toUpperCase() === 'FR'
+                  ? "Votre résumé mensuel des offres d'emploi est prêt. Consultez votre application pour voir les nouveaux emplois!"
+                  : 'Your monthly job digest is ready. Check your app to see the new jobs!',
+              token: value[0].token,
+              platform: value[0].platform,
+              dryRun: false,
+              data: {
+                baseScreen: 'Job',
+                props: {
+                  screen: 'Results',
+                  params: {
+                    isPushNotification: true,
+                    pushNotificationsPayload: value?.map(search => ({
+                      keyword: search.keyword,
+                      city: search.location,
+                      language: search.language,
+                      digest: 'monthly',
+                    })),
+                  },
+                },
+              },
+            },
+            {
+              auth: {
+                username: process.env.NOTIFICATIONS_API_USER || '',
+                password: process.env.NOTIFICATIONS_API_PASS || '',
+              },
+            },
+          );
+
+          console.log(
+            `Successfully sent monthly notification to user: ${userId}`,
+          );
+        } catch (e: any) {
+          console.log(
+            `Error sending monthly digest notification to user ${userId}. Message:`,
+            e.message,
+          );
+        }
+      }
+
+      console.log('===== END MONTHLY NOTIFICATION CRON JOB =====');
+    } catch (e: any) {
+      console.log('Monthly notification error:', e.message);
     }
   },
   {
