@@ -216,7 +216,7 @@ cron.schedule(
   },
   {
     scheduled: true,
-    timezone: 'America/Los_Angeles',
+    timezone: 'America/Vancouver',
   },
 );
 
@@ -339,7 +339,7 @@ cron.schedule(
   },
   {
     scheduled: true,
-    timezone: 'America/Los_Angeles',
+    timezone: 'America/Vancouver',
   },
 );
 
@@ -429,7 +429,7 @@ cron.schedule(
   },
   {
     scheduled: true,
-    timezone: 'America/Los_Angeles',
+    timezone: 'America/Vancouver',
   },
 );
 
